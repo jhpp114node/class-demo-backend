@@ -2,15 +2,23 @@
 let { data, UIDs } = require("./data");
 const generateID = require("./services");
 const express = require("express");
+require("dotenv").config();
+// require to have node-fetch
+// @https://stackoverflow.com/questions/48433783/referenceerror-fetch-is-not-defined
+const {
+  nodeFetchRetrieveImageFromAPI,
+  axiosRetrieveImageFromAPI,
+} = require("./util");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-console.log(UIDs);
+// console.log(UIDs);
+// console.log(process.env.UNSPLASH_KEY);
 // middleware
 // Nelly said we are receiving data as an object {...}
 // a npm package call bodyparser was being used but it is deprecated
 // therefore use express.something
-// https://stackoverflow.com/questions/24330014/bodyparser-is-deprecated-express-4
+// @https://stackoverflow.com/questions/24330014/bodyparser-is-deprecated-express-4
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -63,37 +71,35 @@ app.get("/search", (req, res) => {
 });
 
 // POST method
-app.post("/destination", (req, res) => {
+app.post("/destination", async (req, res) => {
   console.log("GOT a POST request");
-  const { destination, location, photoURL, description } = req.body;
+  const { destination, location, description } = req.body;
   // console.log(receivedObj);
   if (
     destination === undefined ||
     destination.length === 0 ||
     location === undefined ||
-    description.length === 0
+    location.length === 0
   ) {
     return res
       .status(400)
       .send({ error: "Destination and location are required" });
   }
+  randomImageData = await nodeFetchRetrieveImageFromAPI(destination, location);
   // adding on to the array of obj in data.js
   data.push({
     id: generateID(),
     destination,
     location,
-    photoURL:
-      photoURL !== undefined && photoURL.length > 0
-        ? photoURL
-        : "https://images.unsplash.com/photo-1621415780222-5a62b90a7b50?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80",
-    description,
+    photoURL: randomImageData,
+    description: description,
   });
   console.log(data);
   return res.status(200).json({ success: "Create success" });
 });
 
 // PUT method
-app.put("/destination/:id", (req, res) => {
+app.put("/destination/:id", async (req, res) => {
   let doesExit = false;
   // find the object based on users
   console.log("Got a PUT request");
@@ -101,31 +107,42 @@ app.put("/destination/:id", (req, res) => {
   if (targetId === undefined || targetId.length === 0) {
     return res.status(400).send({ error: "Id required" });
   }
-  const { destination, location, photoURL, description } = req.body;
+  const { destination, location, description } = req.body;
   if (
     destination === undefined ||
     destination.length === 0 ||
     location === undefined ||
-    description.length === 0
+    location.length === 0
   ) {
     return res
       .status(400)
       .send({ error: "Destination and location are required" });
   }
-  const result = data.map((eachData) => {
+
+  for (eachData of data) {
+    // console.log(eachData);
     if (Number(eachData.id) === Number(targetId)) {
       doesExit = true;
-      eachData.destination = destination;
-      eachData.location = location;
-      eachData.photoURL = photoURL;
-      eachData.description = description;
+      if (
+        eachData.destination === destination &&
+        eachData.location === location
+      ) {
+        eachData.photoURL = eachData.photoURL;
+      } else {
+        eachData.photoURL = await axiosRetrieveImageFromAPI(
+          destination,
+          location
+        );
+      }
+      eachData.destination = destination ? destination : eachData.destination;
+      eachData.location = location ? location : eachData.location;
+      eachData.description = description ? description : eachData.description;
+      break;
     }
-    return eachData;
-  });
+  }
   if (!doesExit) {
     return res.status(400).json({ fail: "data does not exist" });
   }
-  data = result;
   return res.status(200).json({ success: "Update success" });
 });
 
