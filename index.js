@@ -102,7 +102,7 @@ app.post("/destination", async (req, res) => {
     description: description,
   });
   console.log(data);
-  return res.status(200).json({ success: "Create success" });
+  res.status(200).redirect("/");
 });
 
 // PUT method
