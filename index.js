@@ -3,6 +3,7 @@ let { data, UIDs } = require("./data");
 const generateID = require("./services");
 const express = require("express");
 require("dotenv").config();
+const path = require("path");
 // require to have node-fetch
 // @https://stackoverflow.com/questions/48433783/referenceerror-fetch-is-not-defined
 const {
@@ -12,8 +13,8 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// console.log(UIDs);
-// console.log(process.env.UNSPLASH_KEY);
+// Setting
+app.set("view engine", "ejs");
 // middleware
 // Nelly said we are receiving data as an object {...}
 // a npm package call bodyparser was being used but it is deprecated
@@ -25,10 +26,15 @@ app.use(
     extended: true,
   })
 );
+// console.log(path.join(__dirname, "public"));
+app.use(express.static(path.join(__dirname, "public")));
 
+// ROUTES
 app.get("/", (req, res) => {
   console.log(data.length);
-  res.status(200).send("Good morninig!");
+  const destinationData = data;
+  console.log(destinationData);
+  res.status(200).render("index.ejs", { destinationData: destinationData });
 });
 
 app.get("/destination", (req, res) => {
@@ -74,6 +80,7 @@ app.get("/search", (req, res) => {
 app.post("/destination", async (req, res) => {
   console.log("GOT a POST request");
   const { destination, location, description } = req.body;
+  console.log(destination, location, description);
   // console.log(receivedObj);
   if (
     destination === undefined ||
@@ -149,9 +156,9 @@ app.put("/destination/:id", async (req, res) => {
 // Delete method
 app.delete("/destination/:id", (req, res) => {
   console.log("Got a DELETE request");
-  if (req.body.destination === undefined || req.body.description.length === 0) {
-    return res.status(400).json({ error: "Destination cannot be empty" });
-  }
+  // if (req.body.destination === undefined || req.body.description.length === 0) {
+  //   return res.status(400).json({ error: "Destination cannot be empty" });
+  // }
   const targetId = req.params.id;
   console.log(targetId);
   const result = data.filter((eachData) => {

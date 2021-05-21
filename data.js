@@ -23,6 +23,14 @@ const data = [
       "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1007&q=80",
     description: "some dummy description",
   },
+  {
+    id: 4,
+    destination: "seoul",
+    location: "korea",
+    photoURL:
+      "https://images.unsplash.com/photo-1617283458655-1ef09d4f17f2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80",
+    description: "some dummy description",
+  },
 ];
 
 const UIDs = {
